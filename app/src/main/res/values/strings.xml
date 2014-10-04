@@ -6,5 +6,7 @@
     <string name="action_settings">Settings</string>
     <string name="download_http">Download(1)</string>
     <string name="download_http_link">Download(1) Link</string>
+    <string name="download_manager">Download(2)</string>
+    <string name="download_manager_link">Download(2) Link</string>
 
 </resources>

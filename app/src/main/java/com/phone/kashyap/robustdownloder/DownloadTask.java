@@ -28,6 +28,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Void>
 	private String _fileName;
 	private int _fileSize;
 	private double _fileSizeInMB;
+	final static private String FOLDER_NAME = "Robust Downloader";
 	private int NOTIFICATION_ID = 1;
 	private Notification _notification;
 	private NotificationManager _notificationManager;
@@ -66,7 +67,7 @@ public class DownloadTask extends AsyncTask<String, Integer, Void>
 			_progressBar.setMax((int) Math.round(_fileSizeInMB));
 
 			//Saving in directory
-			File rootDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Robust Downloader");
+			File rootDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), FOLDER_NAME);
 			if(!rootDirectory.exists())
 				rootDirectory.mkdirs();
 
