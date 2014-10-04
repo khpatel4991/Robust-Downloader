@@ -50,11 +50,7 @@ public class MainActivity extends Activity
 	public static class MainFragment extends Fragment
 	{
 		final static private String LOG_TAG = MainFragment.class.getSimpleName();
-		final static private String URL_DEFAULT = "http://www.iso.org/iso/annual_report_2009.pdf";
-
-		public MainFragment()
-		{
-		}
+		public MainFragment(){}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -73,109 +69,12 @@ public class MainActivity extends Activity
 				{
 					Log.i(LOG_TAG, "Clicked Default Download Button");
 					if(mWifi.isConnected())
-						new DownloadTask(progressBar).execute();
+						new DownloadTask(getActivity(), progressBar).execute();
 					else
 						Toast.makeText(getActivity(), "Wifi not connected", Toast.LENGTH_SHORT).show();
 				}
 			});
-
 			return rootView;
 		}
-		private class DownloadTask extends AsyncTask<Void, Integer, Void>
-		{
-			private final String LOG_TAG = DownloadTask.class.getSimpleName();
-			private final int BUFFER_SIZE = 1024;
-			private final ProgressBar _progressBar;
-			private String _fileName;
-
-			private int NOTIFICATION_ID = 1;
-			private Notification _notification;
-			private NotificationManager _notificationManager;
-
-			public DownloadTask(ProgressBar progressBar)
-			{
-				_progressBar = progressBar;
-				_notificationManager = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-			}
-
-			@Override
-			protected void onPreExecute()
-			{
-				super.onPreExecute();
-				createNotification("File Downloading..", "");
-			}
-
-			@Override
-			protected Void doInBackground(Void... voids)
-			{
-				Log.i(LOG_TAG, "Connecting");
-				try
-				{
-					//Connection Part
-					URL defaultUrl = new URL(URL_DEFAULT);
-					HttpURLConnection connection = (HttpURLConnection) defaultUrl.openConnection();
-					connection.setDoOutput(true);
-					connection.setRequestMethod("GET");
-					connection.connect();
-					int fileSize = connection.getContentLength();
-					_progressBar.setMax(fileSize / BUFFER_SIZE);
-
-					//Saving in directory
-					File rootDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Robust Downloader");
-					if(!rootDirectory.exists())
-						rootDirectory.mkdirs();
-
-					_fileName = URLUtil.guessFileName(URL_DEFAULT, null, MimeTypeMap.getFileExtensionFromUrl(URL_DEFAULT));
-					File file = new File(rootDirectory, _fileName);
-					file.createNewFile();
-					InputStream inputStream = connection.getInputStream();
-					FileOutputStream output = new FileOutputStream(file);
-					byte[] buffer = new byte[BUFFER_SIZE];
-					int byteCount = 0;
-					int i = 0;
-					while ((byteCount = inputStream.read(buffer)) > 0)
-					{
-						publishProgress(++i);
-						output.write(buffer, 0, byteCount);
-					}
-					output.close();
-				}
-				catch (MalformedURLException e)	{e.printStackTrace();}
-				catch (IOException e) {e.printStackTrace();}
-				return null;
-			}
-
-			@Override
-			protected void onProgressUpdate(Integer... values)
-			{
-				super.onProgressUpdate(values);
-				//Log.i(LOG_TAG, values[0].toString());
-				_progressBar.setProgress(values[0]);
-			}
-
-			@Override
-			protected void onPostExecute(Void aVoid)
-			{
-				super.onPostExecute(aVoid);
-				_notificationManager.cancel(NOTIFICATION_ID);
-				//Toast.makeText(getActivity(), _fileName + " downloaded!!", Toast.LENGTH_SHORT).show();
-			}
-
-			private void createNotification(String contentTitle, String contentText)
-			{
-
-				NotificationCompat.Builder builder = new NotificationCompat.Builder(getActivity());
-				builder.setAutoCancel(true);
-				builder.setContentTitle(contentTitle);
-				builder.setContentText(contentText);
-				builder.setSmallIcon(R.drawable.ic_launcher);
-
-				_notification = builder.build();
-				_notificationManager = (NotificationManager) getActivity().getSystemService(NOTIFICATION_SERVICE);
-				_notificationManager.notify(NOTIFICATION_ID, _notification);
-			}
-		}
-
 	}
-
 }
