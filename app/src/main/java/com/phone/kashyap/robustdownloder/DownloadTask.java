@@ -19,10 +19,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class DownloadTask extends AsyncTask<Void, Integer, Void>
+public class DownloadTask extends AsyncTask<String, Integer, Void>
 {
 	private final String LOG_TAG = DownloadTask.class.getSimpleName();
-	final private String URL_DEFAULT = "http://www.iso.org/iso/annual_report_2009.pdf";
 	private Context _context;
 	private final int BUFFER_SIZE = 1024;
 	private final ProgressBar _progressBar;
@@ -51,13 +50,13 @@ public class DownloadTask extends AsyncTask<Void, Integer, Void>
 	}
 
 	@Override
-	protected Void doInBackground(Void... voids)
+	protected Void doInBackground(String... strings)
 	{
 		Log.i(LOG_TAG, "Connecting");
 		try
 		{
 			//Connection Part
-			URL defaultUrl = new URL(URL_DEFAULT);
+			URL defaultUrl = new URL(strings[0]);
 			HttpURLConnection connection = (HttpURLConnection) defaultUrl.openConnection();
 			connection.setDoOutput(true);
 			connection.setRequestMethod("GET");
@@ -71,7 +70,7 @@ public class DownloadTask extends AsyncTask<Void, Integer, Void>
 			if(!rootDirectory.exists())
 				rootDirectory.mkdirs();
 
-			_fileName = URLUtil.guessFileName(URL_DEFAULT, null, MimeTypeMap.getFileExtensionFromUrl(URL_DEFAULT));
+			_fileName = URLUtil.guessFileName(strings[0], null, MimeTypeMap.getFileExtensionFromUrl(strings[0]));
 			File file = new File(rootDirectory, _fileName);
 			file.createNewFile();
 			InputStream inputStream = connection.getInputStream();
@@ -110,6 +109,8 @@ public class DownloadTask extends AsyncTask<Void, Integer, Void>
 		Log.i(LOG_TAG, "Download Complete");
 		_builder.setOngoing(false);
 		_builder.setContentTitle("Download Complete.");
+		_builder.setContentText("Done.");
+		_builder.setTicker("Download Finished.");
 		_notificationManager.notify(NOTIFICATION_ID, _builder.build());
 	}
 

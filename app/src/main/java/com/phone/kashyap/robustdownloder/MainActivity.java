@@ -17,7 +17,9 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.webkit.URLUtil;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import android.support.v4.app.NotificationCompat;
@@ -31,6 +33,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 
 public class MainActivity extends Activity
@@ -50,6 +53,7 @@ public class MainActivity extends Activity
 	public static class MainFragment extends Fragment
 	{
 		final static private String LOG_TAG = MainFragment.class.getSimpleName();
+		final static private String URL_DEFAULT = "http://www.iso.org/iso/annual_report_2009.pdf";
 		public MainFragment(){}
 
 		@Override
@@ -57,10 +61,12 @@ public class MainActivity extends Activity
 		{
 			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-			ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-			final NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
+			TextView defaultURL = (TextView) rootView.findViewById(R.id.textView_default);
+			defaultURL.setText(URL_DEFAULT);
 			Button buttonDefaultDownload = (Button) rootView.findViewById(R.id.button_default_download);
+			Button buttonCustomDownload = (Button) rootView.findViewById(R.id.button_custom_download);
+			final EditText editText = (EditText) rootView.findViewById(R.id.editText_URL);
+
 			final ProgressBar progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
 			buttonDefaultDownload.setOnClickListener(new View.OnClickListener() {
@@ -68,8 +74,37 @@ public class MainActivity extends Activity
 				public void onClick(View view)
 				{
 					Log.i(LOG_TAG, "Clicked Default Download Button");
-					if(mWifi.isConnected())
-						new DownloadTask(getActivity(), progressBar).execute();
+					ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo wifiStatus = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if(wifiStatus.isConnected())
+						new DownloadTask(getActivity(), progressBar).execute(URL_DEFAULT);
+					else
+						Toast.makeText(getActivity(), "Wifi not connected", Toast.LENGTH_SHORT).show();
+				}
+			});
+
+			buttonCustomDownload.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view)
+				{
+					Log.i(LOG_TAG, "Clicked Default Download Button");
+					ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo wifiStatus = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if(wifiStatus.isConnected())
+					{
+						final String editTextVal = editText.getText().toString();
+						String URL_Custom;
+						if(!editTextVal.startsWith("http://") && !editTextVal.startsWith("https://"))
+							URL_Custom = "http://" + editTextVal;
+						else
+							URL_Custom = editTextVal;
+
+						URLUtil urlUtil = new URLUtil();
+						if(urlUtil.isHttpUrl(URL_Custom) || urlUtil.isHttpsUrl(URL_Custom))
+							new DownloadTask(getActivity(), progressBar).execute(URL_Custom);
+						else
+							Toast.makeText(getActivity(), "Invalid URL", Toast.LENGTH_SHORT).show();
+					}
 					else
 						Toast.makeText(getActivity(), "Wifi not connected", Toast.LENGTH_SHORT).show();
 				}
