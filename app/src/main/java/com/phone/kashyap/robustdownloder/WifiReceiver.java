@@ -1,5 +1,6 @@
 package com.phone.kashyap.robustdownloder;
 
+import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,14 +24,18 @@ public class WifiReceiver extends BroadcastReceiver
 			NetworkInfo networkInfo =
 					intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
 			if(networkInfo.isConnected())
-				Toast.makeText(context, "Connected to " + String.valueOf(networkInfo.getExtraInfo()), Toast.LENGTH_SHORT).show();
+			{
+				Toast.makeText(context, "Connected to " + String.valueOf(networkInfo.getExtraInfo()) + ". Download will start if any.", Toast.LENGTH_SHORT).show();
+			}
 		}
 		else if(intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
 		{
 			NetworkInfo networkInfo =
 					intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 			if(networkInfo.getType() == ConnectivityManager.TYPE_WIFI && !networkInfo.isConnected())
-				Toast.makeText(context, "Disconnected from Wifi", Toast.LENGTH_SHORT).show();
+			{
+				Toast.makeText(context, "Disconnected from Wifi. Download will pause if any!", Toast.LENGTH_SHORT).show();
+			}
 		}
 
 	}

@@ -93,12 +93,19 @@ public class MainActivity extends Activity
 				}
 			});
 
+			//Button onCLickListeners
 			buttonDefaultDownloadManager.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View view)
 				{
 					Log.i(LOG_TAG, "Clicked Default Download2 Button");
-					downloadFile(URL_DEFAULT);
+					ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo wifiStatus = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if(wifiStatus.isConnected())
+						downloadFile(URL_DEFAULT);
+					else
+						Toast.makeText(getActivity(), "Wifi not connected", Toast.LENGTH_SHORT).show();
+
 				}
 			});
 
@@ -108,8 +115,12 @@ public class MainActivity extends Activity
 				{
 					Log.i(LOG_TAG, "Clicked Custom Download2 Button");
 					final String editTextVal = editText.getText().toString();
-					String URL_Custom = getProperUrl(editTextVal);
-					downloadFile(URL_Custom);
+					ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo wifiStatus = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if(wifiStatus.isConnected())
+						downloadFile(editTextVal);
+					else
+						Toast.makeText(getActivity(), "Wifi not connected", Toast.LENGTH_SHORT).show();
 				}
 			});
 
@@ -119,29 +130,33 @@ public class MainActivity extends Activity
 		private String getProperUrl(String editTextVal)
 		{
 			String URL_Custom;
-			if(!editTextVal.startsWith("http://") && !editTextVal.startsWith("https://"))
-				URL_Custom = "http://" + editTextVal;
-			else
-				URL_Custom = editTextVal;
+			if(!editTextVal.isEmpty())
+			{
+				if (!editTextVal.startsWith("http://") && !editTextVal.startsWith("https://"))
+					URL_Custom = "http://" + editTextVal;
+				else URL_Custom = editTextVal;
 
-			URLUtil urlUtil = new URLUtil();
-			if(urlUtil.isHttpUrl(URL_Custom) || urlUtil.isHttpsUrl(URL_Custom))
-				return URL_Custom;
-			return null;
+				URLUtil urlUtil = new URLUtil();
+				if (urlUtil.isHttpUrl(URL_Custom) || urlUtil.isHttpsUrl(URL_Custom)) {return URL_Custom;}
+			}
+			else
+				Toast.makeText(getActivity(), "URL field is Empty.", Toast.LENGTH_SHORT).show();
+			return "";
 		}
 
 		private void downloadFile(String URL)
 		{
-			DownloadManager.Request request = new DownloadManager.Request(Uri.parse(URL_DEFAULT));
+			URL = getProperUrl(URL);
+			if(URL.isEmpty())
+				return;
+			DownloadManager.Request request = new DownloadManager.Request(Uri.parse(URL));
 			request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-			request.setTitle("File Downloaded.");
-			request.setDescription("File is being downloaded...");
-			request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+			request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 			String fileName = URLUtil.guessFileName(URL_DEFAULT, null, MimeTypeMap.getFileExtensionFromUrl(URL_DEFAULT));
-			request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS + FOLDER_NAME, fileName);
-
+			request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS + "/" + FOLDER_NAME, fileName);
 			DownloadManager downloadManager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
 			downloadManager.enqueue(request);
+			Toast.makeText(getActivity(), "Download Started. Check Notification.", Toast.LENGTH_SHORT).show();
 		}
 	}
 }
